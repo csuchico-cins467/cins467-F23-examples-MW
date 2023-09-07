@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -54,17 +55,83 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  // int? _counter;
+  late Future<int> _counter;
+  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
-  void _incrementCounter() {
-    _counter++;
+  void _incrementCounter() async {
+    final SharedPreferences prefs = await _prefs;
+    final int counter = (prefs.getInt("counter") ?? 0) + 1;
+
+    if (counter > 10) {
+      return;
+    }
+
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
+      _counter = prefs.setInt("counter", counter).then((bool success) {
+        if (success) {
+          return counter;
+        } else {
+          return -1;
+        }
+      });
     });
+    // setState(() {
+    //   if (_counter != null) {
+    //     _counter = _counter! + 1;
+    //     SharedPreferences.getInstance().then((prefs) {
+    //       prefs.setInt("counter", _counter!);
+    //     });
+    //   }
+    // });
+  }
+
+  void _decrementCounter() async {
+    final SharedPreferences prefs = await _prefs;
+    final int counter = (prefs.getInt("counter") ?? 0) - 1;
+
+    if (counter < 0) {
+      return;
+    }
+
+    setState(() {
+      _counter = prefs.setInt("counter", counter).then((bool success) {
+        if (success) {
+          return counter;
+        } else {
+          return -1;
+        }
+      });
+    });
+    // setState(() {
+    //   if (_counter != null) {
+    //     _counter = _counter! + 1;
+    //     SharedPreferences.getInstance().then((prefs) {
+    //       prefs.setInt("counter", _counter!);
+    //     });
+    //   }
+    // });
+  }
+
+  // void setCounterFromPrefs(SharedPreferences prefs) {
+  //   setState(() {
+  //     _counter = prefs.getInt("counter") ?? 0;
+  //   });
+  // }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    // SharedPreferences.getInstance().then(setCounterFromPrefs);
+    _counter = _prefs.then((prefs) => prefs.getInt("counter") ?? 0);
+    // _counter = _prefs.then((prefs) {
+    //   int? counter = prefs.getInt("counter");
+    //   if (counter == null) {
+    //     counter = 0;
+    //   }
+    //   return counter;
+    // });
   }
 
   @override
@@ -108,10 +175,40 @@ class _MyHomePageState extends State<MyHomePage> {
             const Text(
               'You have pushed the button this many times:',
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
+            FutureBuilder<int>(
+                future: _counter,
+                builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+                  if (snapshot.hasData) {
+                    return Text(
+                      '${snapshot.data}',
+                      style: Theme.of(context).textTheme.headlineLarge,
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text("${snapshot.error}");
+                  }
+                  return const CircularProgressIndicator();
+                }),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                    onPressed: _decrementCounter,
+                    child: const Icon(Icons.remove)),
+                ElevatedButton(
+                  onPressed: _incrementCounter,
+                  child: IconButton(
+                      onPressed: _incrementCounter,
+                      tooltip: "Increment",
+                      icon: const Icon(Icons.add)),
+                ),
+              ],
+            )
+            // _counter == null
+            //     ? const CircularProgressIndicator()
+            //     : Text(
+            //         '$_counter',
+            //         style: Theme.of(context).textTheme.headlineLarge,
+            //       ),
           ],
         ),
       ),
