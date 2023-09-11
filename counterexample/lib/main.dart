@@ -1,3 +1,4 @@
+import 'package:counterexample/storage.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -11,27 +12,28 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // TRY THIS: Try running your application with "flutter run". You'll see
-          // the application has a blue toolbar. Then, without quitting the app,
-          // try changing the seedColor in the colorScheme below to Colors.green
-          // and then invoke "hot reload" (save your changes or press the "hot
-          // reload" button in a Flutter-supported IDE, or press "r" if you used
-          // the command line to start the app).
-          //
-          // Notice that the counter didn't reset back to zero; the application
-          // state is not lost during the reload. To reset the state, use hot
-          // restart instead.
-          //
-          // This works for code too, not just values: Most code changes can be
-          // tested with just a hot reload.
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange),
-          useMaterial3: true,
-        ),
-        home: const MyHomePage(title: 'Flutter Demo Home Page'));
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        // This is the theme of your application.
+        //
+        // TRY THIS: Try running your application with "flutter run". You'll see
+        // the application has a blue toolbar. Then, without quitting the app,
+        // try changing the seedColor in the colorScheme below to Colors.green
+        // and then invoke "hot reload" (save your changes or press the "hot
+        // reload" button in a Flutter-supported IDE, or press "r" if you used
+        // the command line to start the app).
+        //
+        // Notice that the counter didn't reset back to zero; the application
+        // state is not lost during the reload. To reset the state, use hot
+        // restart instead.
+        //
+        // This works for code too, not just values: Most code changes can be
+        // tested with just a hot reload.
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
+      ),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    );
   }
 }
 
@@ -48,23 +50,50 @@ class MyHomePage extends StatefulWidget {
   // always marked "final".
 
   final String title;
+  final CounterStorage storage = const CounterStorage();
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  late Future<int> _counter;
 
-  void _incrementCounter() {
-    _counter++;
+  Future<void> _incrementCounter() async {
+    int count = await widget.storage.readCounter();
+    if (count < 10) {
+      count++;
+    }
+    await widget.storage.writeCounter(count);
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
+      _counter = widget.storage.readCounter();
     });
+  }
+
+  Future<void> _decrementCounter() async {
+    int count = await widget.storage.readCounter();
+    if (count > 0) {
+      count--;
+    }
+    await widget.storage.writeCounter(count);
+    setState(() {
+      _counter = widget.storage.readCounter();
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _counter = widget.storage.readCounter();
+    // _counter = _prefs.then((prefs) {
+    //   // int? counter = prefs.getInt('counter');
+    //   // if (counter == null) {
+    //   //   return 0;
+    //   // }
+    //   // return counter;
+    //   return prefs.getInt('counter') ?? 0;
+    // });
   }
 
   @override
@@ -108,18 +137,44 @@ class _MyHomePageState extends State<MyHomePage> {
             const Text(
               'You have pushed the button this many times:',
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineLarge,
+            FutureBuilder<int>(
+              future: _counter,
+              builder: (BuildContext context, AsyncSnapshot<int> snapshot) {
+                if (snapshot.hasData) {
+                  return Text(
+                    '${snapshot.data}',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  );
+                } else if (snapshot.hasError) {
+                  return Text("Error: ${snapshot.error}");
+                } else {
+                  return CircularProgressIndicator();
+                }
+              },
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: _decrementCounter,
+                  child: IconButton(
+                      onPressed: _decrementCounter,
+                      tooltip: "Decrement counter by one",
+                      icon: const Icon(Icons.remove)),
+                ),
+                ElevatedButton(
+                  onPressed: _incrementCounter,
+                  child: const Icon(Icons.add),
+                ),
+              ],
+            )
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
-        // child: const Icon(Icons.add),
-        child: const Text("Test"),
+        child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
