@@ -32,13 +32,13 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  MyHomePage({super.key, required this.title});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -50,7 +50,7 @@ class MyHomePage extends StatefulWidget {
   // always marked "final".
 
   final String title;
-  final CounterStorage storage = const CounterStorage();
+  final CounterStorage storage = CounterStorage();
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();

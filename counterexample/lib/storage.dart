@@ -1,29 +1,80 @@
-import 'dart:io';
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:sqflite/sqflite.dart';
+
+const String tableCount = 'counts';
+const String columnId = '_id';
+const String columnCount = 'count';
+
+class CountObject {
+  int id = 0;
+  late int count;
+
+  Map<String, dynamic> toMap() {
+    var map = <String, dynamic>{columnCount: count, columnId: id};
+    return map;
+  }
+
+  CountObject();
+
+  CountObject.fromMap(Map<dynamic, dynamic> map) {
+    id = map[columnId];
+    count = map[columnCount];
+  }
+}
 
 class CounterStorage {
-  const CounterStorage();
+  late Database db;
+  CounterStorage();
 
-  Future<String> get _localPath async {
-    final Directory appDocumentsDir = await getApplicationDocumentsDirectory();
-    return appDocumentsDir.path;
+  Future<void> open(String path) async {
+    db = await openDatabase(path, version: 1,
+        onCreate: (Database db, int version) async {
+      await db.execute('''
+create table $tableCount (
+  $columnId integer primary key autoincrement,
+  $columnCount integer not null)
+''');
+    });
   }
 
-  Future<File> get _localFile async {
-    final path = await _localPath;
-    return File("$path/counter.txt");
+  Future<CountObject> insert(CountObject co) async {
+    co.id = await db.insert(tableCount, co.toMap());
+    return co;
   }
+
+  Future<CountObject> getCount(int id) async {
+    List<Map<String, dynamic>> maps = await db.query(tableCount,
+        columns: [columnId, columnCount],
+        where: '$columnId = ?',
+        whereArgs: [id]);
+    if (maps.isNotEmpty) {
+      Map first = maps.first;
+      return CountObject.fromMap(first);
+    }
+    CountObject co = CountObject();
+    co.count = 0;
+    co.id = id;
+    co = await insert(co);
+    return co;
+
+    // return null;
+  }
+
+  Future<int> update(CountObject co) async {
+    return await db.update(tableCount, co.toMap(),
+        where: '$columnId = ?', whereArgs: [co.id]);
+  }
+
+  Future close() async => db.close();
 
   Future<bool> writeCounter(int counter) async {
     try {
-      final File file = await _localFile;
-      String jsonString = json.encode({"counter": counter});
-      if (kDebugMode) {
-        print(jsonString);
-      }
-      await file.writeAsString(jsonString);
+      await open("counter2.db");
+      CountObject co = CountObject();
+      co.count = counter;
+      co.id = 0;
+      await update(co);
+      await close();
       return true;
     } catch (e) {
       if (kDebugMode) {
@@ -35,17 +86,13 @@ class CounterStorage {
 
   Future<int> readCounter() async {
     try {
-      final File file = await _localFile;
-      final String contents = await file.readAsString();
-      Map<String, dynamic> countData = json.decode(contents);
-      return countData["counter"];
+      await open("counter2.db");
+      CountObject co = await getCount(0);
+      await close();
+      return co.count;
     } catch (e) {
       if (kDebugMode) {
         print(e);
-      }
-      bool writeSuccess = await writeCounter(0);
-      if (writeSuccess) {
-        return 0;
       }
     }
     return -1;
