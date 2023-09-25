@@ -56,16 +56,28 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _controller = TextEditingController();
   String _text = "";
 
-  void _print() {
-    if (kDebugMode) {
-      print(_controller.text);
+  void _submit() {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(const SnackBar(content: Text("Processing")));
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _text = _controller.text;
+      });
     }
-    setState(() {
-      _text = _controller.text;
-    });
+  }
+
+  String? _textValidator(String? value) {
+    if (value == null || value.isEmpty) {
+      return "Please enter some text";
+    }
+    if (value.contains("@")) {
+      return "Do not use @";
+    }
+    return null;
   }
 
   @override
@@ -92,11 +104,18 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            TextField(
-                controller: _controller,
-                decoration: const InputDecoration(
-                    border: OutlineInputBorder(), hintText: "Enter some text")),
-            ElevatedButton(onPressed: _print, child: const Text("Submit")),
+            Form(
+              key: _formKey,
+              child: Column(children: [
+                TextFormField(
+                    controller: _controller,
+                    validator: _textValidator,
+                    decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        hintText: "Enter some text")),
+                ElevatedButton(onPressed: _submit, child: const Text("Submit")),
+              ]),
+            ),
             Text(_text),
           ],
         ),
