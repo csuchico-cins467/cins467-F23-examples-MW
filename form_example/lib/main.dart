@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -61,6 +63,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final TextEditingController _controller = TextEditingController();
   late Future<Position> _position;
   String _text = "";
+  late StreamSubscription<Position> positionSubscriberStream;
+  late Stream<Position> positionStream;
 
   /// Determine the current position of the device.
   ///
@@ -124,10 +128,32 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    positionSubscriberStream.cancel();
+  }
+
+  @override
   void initState() {
     // TODO: implement initState
     super.initState();
     _position = _determinePosition();
+    const LocationSettings locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 100,
+    );
+    positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings);
+    positionSubscriberStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings)
+            .listen((Position? position) {
+      if (kDebugMode) {
+        print(position == null
+            ? 'Unknown'
+            : '${position.latitude.toString()}, ${position.longitude.toString()}');
+      }
+    });
   }
 
   @override
@@ -178,7 +204,20 @@ class _MyHomePageState extends State<MyHomePage> {
                     return Text(snapshot.error.toString());
                   }
                   return const CircularProgressIndicator();
-                })
+                }),
+            StreamBuilder(
+                stream: positionStream,
+                builder:
+                    (BuildContext context, AsyncSnapshot<Position> snapshot) {
+                  if (snapshot.hasData) {
+                    return Text(
+                        "Stream: ${snapshot.data!.latitude}, ${snapshot.data!.longitude}, ${snapshot.data!.accuracy}");
+                  }
+                  if (snapshot.hasError) {
+                    return Text(snapshot.error.toString());
+                  }
+                  return const CircularProgressIndicator();
+                }),
           ],
         ),
       ),
