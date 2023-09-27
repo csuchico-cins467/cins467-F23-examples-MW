@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
   runApp(const MyApp());
@@ -65,6 +67,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String _text = "";
   late StreamSubscription<Position> positionSubscriberStream;
   late Stream<Position> positionStream;
+  File? _imageFile;
 
   /// Determine the current position of the device.
   ///
@@ -156,6 +159,17 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void getPhoto() async {
+    final ImagePicker picker = ImagePicker();
+// Capture a photo.
+    final XFile? photo = await picker.pickImage(source: ImageSource.camera);
+    if (photo != null) {
+      setState(() {
+        _imageFile = File(photo.path);
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -193,6 +207,17 @@ class _MyHomePageState extends State<MyHomePage> {
               ]),
             ),
             Text(_text),
+            SizedBox(
+                height: 250,
+                width: 250,
+                child: _imageFile != null
+                    ? Image.file(_imageFile!)
+                    : Placeholder(
+                        fallbackHeight: 100,
+                        fallbackWidth: 100,
+                        child: Image.network(
+                            "https://t3.ftcdn.net/jpg/05/16/27/58/360_F_516275801_f3Fsp17x6HQK0xQgDQEELoTuERO4SsWV.jpg"),
+                      )),
             FutureBuilder(
                 future: _position,
                 builder: (context, snapshot) {
@@ -221,7 +246,11 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      // This trailing comma makes auto-formatting nicer for build methods.
+      floatingActionButton: FloatingActionButton(
+        onPressed: getPhoto,
+        tooltip: 'Get Photo',
+        child: const Icon(Icons.add_a_photo),
+      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
