@@ -1,35 +1,15 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:counterexample/android/android.dart';
 import 'package:counterexample/storage.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  if (kIsWeb) {
-    runApp(const MyApp(title: "Web App"));
-  } else {
-    if (Platform.isAndroid) {
-      runApp(const MyAndroidApp());
-    } else {
-      runApp(const MyApp(
-        title: "Other",
-      ));
-    }
-  }
-}
-
-class MyApp extends StatelessWidget {
-  final String title;
-
-  const MyApp({super.key, required this.title});
+class MyAndroidApp extends StatelessWidget {
+  const MyAndroidApp({super.key});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Android Demo',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -49,13 +29,13 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: MyHomePage(title: 'Flutter Demo $title'),
+      home: MyAndroidHomePage(title: 'Flutter Android Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({super.key, required this.title});
+class MyAndroidHomePage extends StatefulWidget {
+  MyAndroidHomePage({super.key, required this.title});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -70,10 +50,10 @@ class MyHomePage extends StatefulWidget {
   final CounterStorage storage = CounterStorage();
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MyAndroidHomePage> createState() => _MyAndroidHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyAndroidHomePageState extends State<MyAndroidHomePage> {
   // late Future<int> _counter;
   late Future<Stream<DocumentSnapshot>> _stream;
 
