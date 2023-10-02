@@ -59,6 +59,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   // late Future<int> _counter;
+  late Future<Stream<DocumentSnapshot>> _stream;
 
   Future<void> _incrementCounter() async {
     int count = await widget.storage.readCounter();
@@ -82,27 +83,11 @@ class _MyHomePageState extends State<MyHomePage> {
     // });
   }
 
-  void initFirebase() async {
-    if (!widget.storage.isInitialized) {
-      await widget.storage.initializeDefault();
-    }
-    setState(() {});
-  }
-
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    initFirebase();
-    // _counter = widget.storage.readCounter();
-    // _counter = _prefs.then((prefs) {
-    //   // int? counter = prefs.getInt('counter');
-    //   // if (counter == null) {
-    //   //   return 0;
-    //   // }
-    //   // return counter;
-    //   return prefs.getInt('counter') ?? 0;
-    // });
+    _stream = widget.storage.getStream();
   }
 
   @override
@@ -144,24 +129,27 @@ class _MyHomePageState extends State<MyHomePage> {
       const Text(
         'You have pushed the button this many times:',
       ),
-      widget.storage.isInitialized
-          ? StreamBuilder(
-              stream: FirebaseFirestore.instance
-                  .collection("example")
-                  .doc("counter")
-                  .snapshots(),
-              builder: ((BuildContext context,
-                  AsyncSnapshot<DocumentSnapshot> snapshot) {
-                if (snapshot.hasData) {
-                  return Text(
-                    snapshot.data!["count"].toString(),
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  );
-                } else {
+      FutureBuilder(
+        future: _stream,
+        builder: (BuildContext context,
+            AsyncSnapshot<Stream<DocumentSnapshot>> futurestreamsnapshot) {
+          if (futurestreamsnapshot.hasData) {
+            return StreamBuilder(
+                stream: futurestreamsnapshot.data,
+                builder: (BuildContext context,
+                    AsyncSnapshot<DocumentSnapshot> documentsnapshot) {
+                  if (documentsnapshot.hasData) {
+                    return Text(
+                      documentsnapshot.data!["count"].toString(),
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    );
+                  }
                   return const CircularProgressIndicator();
-                }
-              }))
-          : const CircularProgressIndicator(),
+                });
+          }
+          return const CircularProgressIndicator();
+        },
+      ),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

@@ -20,6 +20,14 @@ class CounterStorage {
 
   bool get isInitialized => _initialized;
 
+  Future<Stream<DocumentSnapshot>> getStream() async {
+    if (!isInitialized) {
+      await initializeDefault();
+    }
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    return firestore.collection("example").doc("counter").snapshots();
+  }
+
   Future<bool> writeCounter(int counter) async {
     try {
       if (!isInitialized) {
