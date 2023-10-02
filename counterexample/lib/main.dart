@@ -146,13 +146,15 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       widget.storage.isInitialized
           ? StreamBuilder(
-              stream:
-                  FirebaseFirestore.instance.collection("example").snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection("example")
+                  .doc("counter")
+                  .snapshots(),
               builder: ((BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                  AsyncSnapshot<DocumentSnapshot> snapshot) {
                 if (snapshot.hasData) {
                   return Text(
-                    snapshot.data!.docs[0]["count"].toString(),
+                    snapshot.data!["count"].toString(),
                     style: Theme.of(context).textTheme.headlineMedium,
                   );
                 } else {
