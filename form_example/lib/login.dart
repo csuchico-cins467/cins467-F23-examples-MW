@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:form_example/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:form_example/main.dart';
+import 'package:form_example/photoform.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -66,29 +68,80 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return getPage();
+  }
+
+  Widget getPage() {
+    if (googleUser == null) {
+      return Scaffold(
+          appBar: AppBar(
+            title: const Text("Login Page"),
+          ),
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: getBody(),
+            ),
+          ));
+    } else {
+      return Scaffold(
         appBar: AppBar(
-          title: const Text("Login Page"),
+          title: const Text("Photos Page"),
+          actions: [
+            IconButton(
+                onPressed: _handleSignOut, icon: const Icon(Icons.logout))
+          ],
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: getBody(),
           ),
-        ));
+        ),
+        floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MyHomePage()),
+              );
+            },
+            tooltip: 'Add a Photo',
+            child: const Icon(Icons.add_a_photo)),
+      );
+    }
   }
 
   List<Widget> getBody() {
     List<Widget> body = [];
     if (googleUser != null) {
-      body.add(ListTile(
-        leading: GoogleUserCircleAvatar(identity: googleUser!),
-        title: Text(googleUser!.displayName ?? ''),
-        subtitle: Text(googleUser!.email),
-      ));
-      body.add(Text(FirebaseAuth.instance.currentUser!.uid));
-      body.add(ElevatedButton(
-          onPressed: _handleSignOut, child: const Text("Logout")));
+      body.add(StreamBuilder(
+          stream: FirebaseFirestore.instance
+              .collection("photos")
+              .orderBy("timestamp", descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              return Expanded(
+                  child: ListView.builder(
+                      itemCount: snapshot.data!.docs.length,
+                      itemBuilder: (context, index) {
+                        DocumentSnapshot documentSnapshot =
+                            snapshot.data!.docs[index];
+                        return Card(
+                          child: Column(children: [
+                            ListTile(title: Text(documentSnapshot["title"])),
+                            Image(
+                              image: NetworkImage(documentSnapshot["url"]),
+                            )
+                          ]),
+                        );
+                      }));
+            }
+            if (snapshot.hasError) {
+              return Text(snapshot.error.toString());
+            }
+            return const CircularProgressIndicator();
+          }));
     } else {
       body.add(ElevatedButton(
           onPressed: () {
