@@ -21,20 +21,14 @@ Widget getDrawer(context) {
           title: const Text('Profile'),
           onTap: () {
             // Update the state of the app.
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const FirstRoute()),
-                (route) => false);
+            Navigator.popAndPushNamed(context, '/');
           },
         ),
         ListTile(
           title: const Text('Matches'),
           onTap: () {
             // Update the state of the app.
-            Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const SecondRoute()),
-                (route) => false);
+            Navigator.popAndPushNamed(context, '/second');
           },
         ),
       ],
