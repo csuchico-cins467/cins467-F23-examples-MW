@@ -85,6 +85,12 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void _decrementCounter() {
+    setState(() {
+      _counter.decrement();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -141,8 +147,8 @@ class _MyHomePageState extends State<MyHomePage> {
               child: const Icon(Icons.add),
             ),
             FloatingActionButton(
-              onPressed: _incrementCounter,
-              tooltip: 'Increment',
+              onPressed: _decrementCounter,
+              tooltip: 'Decrement',
               child: const Icon(Icons.remove),
             )
           ], // This trailing comma makes auto-formatting nicer for build methods.
