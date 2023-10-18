@@ -72,7 +72,7 @@ class Counter {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Counter _counter = Counter();
+  final Counter _counter = Counter();
 
   void _incrementCounter() {
     setState(() {
