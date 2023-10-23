@@ -62,7 +62,7 @@ pages:
     - flutter packages get
   script:
     - flutter build web --release
-    - cp -r build/web public
+    - cp -r build/web ../public
   artifacts:
     paths:
       - public
