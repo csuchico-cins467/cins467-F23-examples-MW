@@ -1,13 +1,21 @@
 #Inspired by: https://medium.com/kinandcartacreated/setup-a-flutter-ci-cd-with-gitlab-ci-part-1-8d40b7a3b3dc
 
 # image: cirrusci/flutter:stable
-image: mobiledevops/flutter-sdk-image:3.10.3
+image: fischerscode/flutter:latest
 
 stages:
   - test
+  - lint
+  # - build
 
 flutter_test:
   stage: test
   script:
     - cd counter_test
     - flutter test
+
+flutter_lint:
+  stage: lint
+  script:
+    - cd counter_test
+    - flutter analyze
