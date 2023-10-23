@@ -21,16 +21,16 @@ flutter_lint:
     - cd counter_test
     - flutter analyze
 
-flutter_build_android:
-  stage: build
-  before_script:
-    - cd counter_test
-    - flutter packages get
-  script:
-    - flutter build apk --release
-  artifacts:
-    paths:
-      - counter_test/build/app/outputs/apk/release/app-release.apk
+# flutter_build_android:
+#   stage: build
+#   before_script:
+#     - cd counter_test
+#     - flutter packages get
+#   script:
+#     - flutter build apk --release
+#   artifacts:
+#     paths:
+#       - counter_test/build/app/outputs/apk/release/app-release.apk
 
 flutter_build_web:
   stage: build
