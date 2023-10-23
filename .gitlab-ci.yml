@@ -3,6 +3,10 @@
 # image: cirrusci/flutter:stable
 image: fischerscode/flutter:latest
 
+workflow:
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
 stages:
   - test
   - lint
@@ -14,23 +18,29 @@ flutter_test:
   script:
     - cd counter_test
     - flutter test
+  rules:
+    - if: $CI_COMMIT_BRANCH != "main"
 
 flutter_lint:
   stage: lint
   script:
     - cd counter_test
     - flutter analyze
+  rules:
+    - if: $CI_COMMIT_BRANCH != "main"
 
-flutter_build_android:
-  stage: build
-  before_script:
-    - cd counter_test
-    - flutter packages get
-  script:
-    - flutter build apk --release
-  artifacts:
-    paths:
-      - counter_test/build/app/outputs/apk/release/app-release.apk
+# flutter_build_android:
+#   stage: build
+#   before_script:
+#     - cd counter_test
+#     - flutter packages get
+#   script:
+#     - flutter build apk --release
+#   artifacts:
+#     paths:
+#       - counter_test/build/app/outputs/apk/release/app-release.apk
+  # rules:
+  #   - if: $CI_COMMIT_BRANCH != "main"
 
 flutter_build_web:
   stage: build
@@ -42,6 +52,8 @@ flutter_build_web:
   artifacts:
     paths:
       - counter_test/build/web/*
+  rules:
+    - if: $CI_COMMIT_BRANCH != "main"
 
 pages:
   stage: deploy
@@ -54,3 +66,5 @@ pages:
   artifacts:
     paths:
       - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
