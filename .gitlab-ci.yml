@@ -6,7 +6,7 @@ image: fischerscode/flutter:latest
 stages:
   - test
   - lint
-  # - build
+  - build
 
 flutter_test:
   stage: test
@@ -19,3 +19,25 @@ flutter_lint:
   script:
     - cd counter_test
     - flutter analyze
+
+flutter_build_android:
+  stage: build
+  before_script:
+    - cd counter_test
+    - flutter packages get
+  script:
+    - flutter build apk --release
+  artifacts:
+    paths:
+      - counter_test/build/app/outputs/apk/release/app-release.apk
+
+flutter_build_web:
+  stage: build
+  before_script:
+    - cd counter_test
+    - flutter packages get
+  script:
+    - flutter build web --release
+  artifacts:
+    paths:
+      - counter_test/build/web/*
