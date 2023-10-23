@@ -7,6 +7,7 @@ stages:
   - test
   - lint
   - build
+  - deploy
 
 flutter_test:
   stage: test
@@ -41,3 +42,15 @@ flutter_build_web:
   artifacts:
     paths:
       - counter_test/build/web/*
+
+pages:
+  stage: deploy
+  before_script:
+    - cd counter_test
+    - flutter packages get
+  script:
+    - flutter build web --release
+    - cp -r build/web public
+  artifacts:
+    paths:
+      - public
